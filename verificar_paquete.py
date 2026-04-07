@@ -57,7 +57,7 @@ def main():
         else:
             fail.append((filename, expected, actual))
 
-    # ── Reporte ──────────────────────────────────────────────────────────────
+    #  Reporte 
     total = len(entries)
     sep   = "=" * 72
     print(f"\n{sep}")
