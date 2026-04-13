@@ -1,5 +1,18 @@
 # Lab — Hashes y Firmas Digitales · MediSoft S.A.
-Implementación de dos capas de protección para la distribución segura de software médico: **integridad de paquetes** mediante SHA-256 y **autenticación de origen** mediante firma digital RSA-PSS.
+
+## Descripción del proyecto
+
+MediSoft S.A. distribuye software de diagnóstico a hospitales en Guatemala, Honduras y El Salvador. El software controla equipos de laboratorio críticos y debe cumplir regulaciones de integridad de dispositivos médicos.
+
+Un incidente reciente expuso la vulnerabilidad del proceso de distribución: un atacante comprometió un mirror no oficial e inyectó código malicioso en un paquete de actualización. Los hospitales lo descargaron sin poder detectar la manipulación.
+
+Este laboratorio implementa **dos capas de protección** para evitar que ese ataque se repita:
+
+1. **Integridad de distribución** — cada archivo del paquete se acompaña de su hash SHA-256. El hospital recalcula los hashes al recibirlos y los compara contra un manifiesto publicado por MediSoft. Cualquier modificación, por mínima que sea, produce un hash completamente diferente y es detectada de inmediato.
+
+2. **Autenticación de origen** — el manifiesto de hashes es firmado digitalmente por MediSoft con una clave privada RSA-2048. El hospital verifica la firma con la clave pública correspondiente, garantizando que el manifiesto no fue reemplazado por el atacante (incluso si comprometió el servidor).
+
+Adicionalmente se exploran las propiedades fundamentales de las funciones hash (efecto avalancha, resistencia a colisiones) y la inseguridad de usar SHA-256 directo para almacenamiento de contraseñas, verificando hashes contra la base de datos pública Have I Been Pwned.
 
 ---
 
@@ -77,6 +90,22 @@ medisoft-v2.1.0   MD5              128         32 fa386a0d796e388b24cb3302c185a4
                   SHA-256          256         64 ec8d163da33b9832c33fbb2d7cba98f5a7087aa6cbdecc04eb32810b1f1f895e
                   SHA3-256         256         64 569daf2d0645c0ab6c0a7960cb552f28ac1a222284fa5605ab11cfe0a2dce82c
 ------------------------------------------------------------------------------------------------------------------
+```
+
+### Problema 2 — Verificación HIBP
+
+```
+-------------------------------------------------------------------------------------------
+Contraseña       SHA-256                                                          Filtraciones
+-------------------------------------------------------------------------------------------
+admin            8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918    9,659,563 ⚠ COMPROMETIDA
+123456           8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92  130,151,765 ⚠ COMPROMETIDA
+hospital         3e25960a79dbc69b674cd4ec67a72c62d2f28571f0e5b9a3e8f4acdf7b7ca38a           0 ✓ No encontrada
+medisoft2024     b1646c45e70d7e12b0e3bba0a96dc9b4d5e19e8b7d1f76cdb23f05e5aca7f5a1           0 ✓ No encontrada
+-------------------------------------------------------------------------------------------
+
+Nota: HIBP usa k-Anonymity — solo se envían los primeros 5 chars del hash SHA-1.
+El hash completo NUNCA sale del equipo local.
 ```
 
 ### Problema 3 — Paquete íntegro vs. comprometido
