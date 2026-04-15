@@ -95,51 +95,112 @@ medisoft-v2.1.0   MD5              128         32 fa386a0d796e388b24cb3302c185a4
 ### Problema 2 — Verificación HIBP
 
 ```
--------------------------------------------------------------------------------------------
-Contraseña       SHA-256                                                          Filtraciones
--------------------------------------------------------------------------------------------
-admin            8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918    9,659,563 ⚠ COMPROMETIDA
-123456           8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92  130,151,765 ⚠ COMPROMETIDA
-hospital         3e25960a79dbc69b674cd4ec67a72c62d2f28571f0e5b9a3e8f4acdf7b7ca38a           0 ✓ No encontrada
-medisoft2024     b1646c45e70d7e12b0e3bba0a96dc9b4d5e19e8b7d1f76cdb23f05e5aca7f5a1           0 ✓ No encontrada
--------------------------------------------------------------------------------------------
-
-Nota: HIBP usa k-Anonymity — solo se envían los primeros 5 chars del hash SHA-1.
-El hash completo NUNCA sale del equipo local.
+---------------------------------------------------------------------------------------------------------------------------------------------
+Contraseña       SHA-256                                                          SHA-1                                    Filtraciones
+---------------------------------------------------------------------------------------------------------------------------------------------
+admin            8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918 D033E22AE348AEB5660FC2140AEC35850C4DA997   42,085,691 ⚠ COMPROMETIDA
+123456           8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92 7C4A8D09CA3762AF61E59520943DC26494F8941B  209,972,844 ⚠ COMPROMETIDA
+hospital         8afe3c83decffdf6dc48597a3f1a52be7c6e2b97b4bdf3b15e20a87a1f657f01 2B2D005E88CE14A4112785BB266B2C0C16BE7EB4      118,791 ⚠ COMPROMETIDA
+medisoft2024     78c12e8e24dfd7836c748c33dff2e9150c028d69488f203485e13f4a6daa777c F80CF41ABF90CAA2EC08527F641C40B4ABFE4DB9            0 ✓ No encontrada
+---------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-### Problema 3 — Paquete íntegro vs. comprometido
+> Nota: Aunque se calcula SHA-256 para cada contraseña, la consulta a Have I Been Pwned se realiza con SHA-1, ya que su API funciona con el modelo de k-Anonymity (solo se envían los primeros 5 caracteres del hash). Esto demuestra que, aunque se use hashing, contraseñas débiles siguen siendo inseguras porque ya existen en bases de datos públicas.
 
+### Problema 3 
+- **Generación de manifiesto**
+```
+=== Manifiesto actualizado: SHA256SUMS.txt ===
+
+SHA-256                                                           Archivo
+-----------------------------------------------------------------------------
+a744466056eb0c632d4813558b2d5b84869a77ed712bc42727b6c647df7b7e48  f1.txt
+756f58192f52ea3af4068ffbce461a010766ed6e77227fe2484d428b6d58b379  f2.txt
+2677068ac10d6a8ba1daafd9daa74b68cf8c592f3ffc405600055ddcf50b7346  f3.txt
+6edc4310f852408c232715c53c787042eb38320419a0a58d4adb382aba265489  f4.txt
+dc50f034defe6be6a471d733b579c561eac42ea8b0bcc368bb370685717205b8  f5.txt
+-----------------------------------------------------------------------------
+
+5 entrada(s) agregadas a SHA256SUMS.txt.
+```
+- **Paquete íntegro vs. comprometido**
 ```
 # Verificación limpia
-  ✓ Correctos: 5   ✗ Fallidos: 0   Veredicto: ✓ PAQUETE ÍNTEGRO
+========================================================================
+  REPORTE DE VERIFICACIÓN — SHA256SUMS.txt
+========================================================================
+  Total de entradas : 5
+  ✓ Correctos        : 5
+  ✗ Fallidos         : 0
+  ? Ausentes         : 0
+========================================================================
+
+[✓] Archivos CORRECTOS:
+    f1.txt
+    f2.txt
+    f3.txt
+    f4.txt
+    f5.txt
+
+  Veredicto final: ✓ PAQUETE ÍNTEGRO
+========================================================================
 
 # Tras mutar un byte en config.json
-  ✓ Correctos: 4   ✗ Fallidos: 1
+========================================================================
+  REPORTE DE VERIFICACIÓN — SHA256SUMS.txt
+========================================================================
+  Total de entradas : 5
+  ✓ Correctos        : 4
+  ✗ Fallidos         : 1
+  ? Ausentes         : 0
+========================================================================
 
-  [✗] Archivos COMPROMETIDOS o CORRUPTOS:
-    Archivo  : config.json
-    Esperado : f6f8ef510cd1422c3e89119bd5df0f841d0ac5829645581c415d043ce042b0d2
-    Calculado: 4f9513fb615351ebc04de3a54e4cf3bf0f0cc725883c12c70c9fb942a2d2f13a
-    Primer dígito hex diferente en posición: 0
+[✓] Archivos CORRECTOS:
+    f1.txt
+    f2.txt
+    f4.txt
+    f5.txt
+
+[✗] Archivos COMPROMETIDOS o CORRUPTOS:
+
+  Archivo  : f3.txt
+  Esperado : 2677068ac10d6a8ba1daafd9daa74b68cf8c592f3ffc405600055ddcf50b7346
+  Calculado: 6edc4310f852408c232715c53c787042eb38320419a0a58d4adb382aba265489
+  Primer dígito hex diferente en posición: 0
 
   Veredicto final: ✗ PAQUETE COMPROMETIDO
+========================================================================
 ```
 
 ### Problemas 4 y 5 — Firma digital
 
 ```
 # Firma generada con éxito
+[1/3] Generando par de claves RSA-2048 ...
   Clave privada  → medisoft_priv.pem  (NO COMPARTIR)
-  Clave pública  → medisoft_pub.pem
-  SHA-256 del manifiesto: 1d5d0b18eb9ce0b5c922e77a3afbb8a43dd72abf1ee4f6e7c6ecf9f3e3c378c5
-  Firma guardada → SHA256SUMS.sig  (256 bytes)
+  Clave pública  → medisoft_pub.pem   (se puede distribuir)
+
+[2/3] Leyendo SHA256SUMS.txt y calculando SHA-256 del contenido ...
+  SHA-256 del manifiesto: 00c43b2b1bbfc05a71942e6b6a8a09d7623283b55f5ec9da354b9ffb5b0f1256
+
+[3/3] Firmando con clave privada (RSA-PSS) → SHA256SUMS.sig ...
+  Tamaño de firma : 256 bytes
+  Firma guardada  → SHA256SUMS.sig
+
+  Proceso completado. Distribuye junto al paquete:
+    • SHA256SUMS.txt  (manifiesto de hashes)
+    • SHA256SUMS.sig        (firma digital)
+    • medisoft_pub.pem  (clave pública para verificación)
 
 # Verificación con manifiesto original
-  ✓ FIRMA VÁLIDA — el manifiesto no fue alterado.
+  ✓ FIRMA VÁLIDA
+  El manifiesto fue creado por el titular de la clave privada.
+  Los hashes en SHA256SUMS.txt no han sido alterados
 
 # Tras cambiar un carácter en SHA256SUMS.txt
-  ✗ FIRMA INVÁLIDA — ADVERTENCIA: no confíes en los archivos.
+  ✗ FIRMA INVÁLIDA
+  ADVERTENCIA: el manifiesto fue modificado o la firma es incorrecta.
+  No confíes en los archivos de este paquete
 ```
 
 ---
@@ -172,20 +233,6 @@ MD5 produce un digest de solo **128 bits** (32 caracteres hexadecimales). Esto l
 SHA-256 con 256 bits hace que las colisiones sean computacionalmente inviables con la tecnología actual; es el mínimo recomendado para verificación de integridad de software.
 
 ---
-
-### Problema 2
-
-**¿Por qué SHA-256 directo sobre contraseñas es inseguro?**
-
-SHA-256 es un algoritmo de propósito general optimizado para ser **rápido**. Aplicado directamente a contraseñas presenta dos problemas:
-
-- **Sin sal:** la misma contraseña siempre produce el mismo hash, lo que permite ataques con tablas precalculadas (rainbow tables). Las contraseñas comunes como `admin` o `123456` ya tienen sus hashes SHA-256 indexados públicamente, como confirma HIBP.
-- **Velocidad:** un atacante con GPU puede probar miles de millones de contraseñas por segundo contra hashes SHA-256 robados.
-
-La solución correcta es **Argon2id** (recomendado por OWASP), que incorpora sal aleatoria por diseño, es deliberadamente lento y tiene costo de memoria configurable, haciendo los ataques por fuerza bruta imprácticamente costosos.
-
----
-
 ### Problema 5
 
 **¿Por qué la firma sigue siendo válida después de mutar un byte en uno de los archivos del paquete? ¿Qué sucede al ejecutar `verificar_paquete.py`?**
